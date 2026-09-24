@@ -79,6 +79,7 @@ endef # SUBDIR_recipe
 
 EXELIST_geos-cbm = \
 	bitmap-demo.cvt \
+	deskacc-demo.cvt \
 	filesel.cvt \
 	geosver.cvt \
 	getid.cvt \
@@ -132,6 +133,41 @@ bitmap-demo.cvt: bitmap.c bitmap-demores.grc bitmap-demo.c
 	$(if $(QUIET),echo $(SYS):$@)
 	$(CL) -t $(SYS) -O -o $@ -m bitmap-demo.map bitmap-demores.grc bitmap-demo.c
 
+# A DESK_ACC needs a different linker config to a plain APPLICATION:
+#
+# - its load address (STARTADDRESS) has to move: the default $0400 is
+#   the normal APPLICATION load address, which overlaps memory the
+#   resident disk driver lives in. Reusing $0400 works fine for
+#   loading/running the accessory itself, but corrupts the driver's own
+#   code, which only bites once RstrAppl needs the driver again to read
+#   the swap file back. A known-working hand-written geos-cbm DA loads
+#   at $1000 instead. Not yet verified what the equivalent is for
+#   geos-apple.
+#
+# - __HIMEM__ (grc65's DESK_ACC header end address, i.e. how much memory
+#   GEOS saves to a swap file before loading the accessory over it and
+#   restores afterwards) needs to be trimmed to this accessory's own
+#   footprint plus stack headroom, instead of the whole application
+#   memory space cfg/geos-cbm.cfg's regular __HIMEM__ default uses --
+#   see geos-cbm-deskacc.cfg for how that's derived automatically from
+#   wherever the linker actually ends up placing this accessory's code,
+#   data and bss (__VLIR0_LAST__), in the same link pass, instead of
+#   needing a number picked by hand. Only geos-cbm-deskacc.cfg exists so
+#   far (see above); geos-apple still uses the regular geos-apple.cfg.
+#
+# deskacc-crt0.o (see deskacc-crt0.s) is linked explicitly, ahead of the
+# target library: it satisfies __STARTUP__/_exit itself, so the linker
+# never pulls in the library's own crt0.o. This keeps the zero page save
+# a desk accessory needs (see deskacc-crt0.s) out of every other GEOS
+# program's build, instead of changing the shared crt0.s/cfg files.
+deskacc-crt0.o: deskacc-crt0.s
+	$(if $(QUIET),echo $(SYS):$@)
+	$(AS) -t $(SYS) -I ../../libsrc/$(SYS) -I ../../libsrc/geos-common -o $@ deskacc-crt0.s
+
+deskacc-demo.cvt: deskacc-crt0.o deskacc-demores.grc deskacc-demo.c
+	$(if $(QUIET),echo $(SYS):$@)
+	$(CL) -t $(SYS) -O -o $@ -m deskacc-demo.map $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-deskacc.cfg) deskacc-crt0.o deskacc-demores.grc deskacc-demo.c
+
 filesel.cvt: fileselres.grc filesel.c
 	$(if $(QUIET),echo $(SYS):$@)
 	$(CL) -t $(SYS) -O -o $@ -m filesel.map fileselres.grc filesel.c
@@ -176,6 +212,7 @@ yesno.cvt: yesnores.grc yesno.c
 clean:
 	@$(DEL) overlay-demores.h 2>$(NULLDEV)
 	@$(DEL) bitmap.c 2>$(NULLDEV)
+	@$(DEL) deskacc-crt0.o 2>$(NULLDEV)
 	@$(DEL) *.cvt 2>$(NULLDEV)
 	@$(DEL) *.map 2>$(NULLDEV)
 	@$(DEL) samples-geos.d64 2>$(NULLDEV)
