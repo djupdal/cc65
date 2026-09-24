@@ -85,7 +85,9 @@ EXELIST_geos-cbm = \
 	getid.cvt \
 	hello1.cvt \
 	hello2.cvt \
+	inputdrv-demo.cvt \
 	overlay-demo.cvt \
+	printdrv-asm-demo.cvt \
 	printdrv-demo.cvt \
 	vector-demo.cvt \
 	yesno.cvt
@@ -218,6 +220,27 @@ printdrv-crt0.o: printdrv-crt0.s
 printdrv-demo.cvt: printdrv-crt0.o printdrv-demo.grc printdrv-demo.c
 	$(if $(QUIET),echo $(SYS):$@)
 	$(CL) -t $(SYS) -O -o $@ -m printdrv-demo.map $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-printdrv.cfg) printdrv-crt0.o printdrv-demo.grc printdrv-demo.c
+
+# An INPUT_DEVICE driver is loaded at MOUSE_BASE ($FE80) and calls its
+# 3-entry jump table at GEOS Kernal Interrupt Level, so unlike
+# deskacc-demo/printdrv-demo there is no C code and no separate crt0.o
+# here at all -- inputdrv-demo.s *is* the whole driver, jump table
+# included, assembled and linked directly. Only geos-cbm-inputdrv.cfg
+# exists so far; Apple GEOS uses a different load address ($F000) for
+# this, not implemented here at all yet.
+inputdrv-demo.cvt: inputdrv-demo.grc inputdrv-demo.s
+	$(if $(QUIET),echo $(SYS):$@)
+	$(CL) -t $(SYS) -O -o $@ -m inputdrv-demo.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-inputdrv.cfg) inputdrv-demo.grc inputdrv-demo.s
+
+# Same PRINTER driver as printdrv-demo.cvt above, but written directly in
+# assembly instead of C -- see printdrv-asm-demo.s for why that's viable
+# here (unlike inputdrv-demo.s's UpdateMouse) but was never required:
+# no crt0.o, no EnterDriver/LeaveDriver zero-page dance, just the driver
+# itself, assembled and linked directly against its own, leaner cfg
+# (geos-cbm-printdrv-asm.cfg has no C-runtime stack to make room for).
+printdrv-asm-demo.cvt: printdrv-asm-demo.grc printdrv-asm-demo.s
+	$(if $(QUIET),echo $(SYS):$@)
+	$(CL) -t $(SYS) -O -o $@ -m printdrv-asm-demo.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-printdrv-asm.cfg) printdrv-asm-demo.grc printdrv-asm-demo.s
 
 rmvprot.cvt: rmvprotres.grc rmvprot.c
 	$(if $(QUIET),echo $(SYS):$@)
