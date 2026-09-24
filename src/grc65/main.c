@@ -72,7 +72,8 @@ const char *mainToken[] = {"MENU", "HEADER", "ICON", "DIALOG", "MEMORY", ""};
 const char *toggle[] = {"off", "no", "0", "on", "yes", "1", ""};
 
 const char *hdrFTypes[] = {"APPLICATION", "AUTO_EXEC", "DESK_ACC", "ASSEMBLY",
-                           "DISK_DEVICE", "PRINTER", "SYSTEM", "INPUT_DEVICE", ""};
+                           "DISK_DEVICE", "PRINTER", "SYSTEM", "INPUT_DEVICE",
+                           "INPUT_128", ""};
 
 const char *hdrFields[] = {"author", "info", "date", "dostype", "mode", "structure", "icon", ""};
 
@@ -465,6 +466,7 @@ static void DoHeader (void)
     int isDeskAcc = 0;
     int isPrinter = 0;
     int isInputDevice = 0;
+    int isInput128 = 0;
 
     openSFile ();
 
@@ -511,6 +513,10 @@ static void DoHeader (void)
             case 7: /* INPUT_DEVICE */
                 myHead.geostype = 10;
                 isInputDevice = 1;
+                break;
+            case 8: /* INPUT_128 -- C128 only, no Apple equivalent */
+                myHead.geostype = 15;
+                isInput128 = 1;
                 break;
             default:
                 AbEnd ("Filetype '%s' is not supported yet", token);
@@ -767,7 +773,7 @@ static void DoHeader (void)
         "    .word __VLIR0_START__, %s - 1, %s\n\n",
         myHead.dostype, myHead.geostype, myHead.structure,
         isDeskAcc ? "__HIMEM__" : "__VLIR0_START__",
-        (isPrinter || isInputDevice) ? "0" : "__STARTUP_RUN__");
+        (isPrinter || isInputDevice || isInput128) ? "0" : "__STARTUP_RUN__");
 
     fillOut (myHead.classname, 12, "$20");
 

@@ -112,6 +112,12 @@ DoStartASCII:
         jsr EnterDriver
         jsr _StartASCII         ; error code (0 = success) returned in A
         tax                     ; ...but the caller expects it in X
+        beq @Success
+        sec                      ; nonzero -> error: carry set, per the
+        jmp @Leave               ; reference guide
+@Success:
+        clc                      ; zero -> success: carry clear
+@Leave:
         jsr LeaveDriver
         rts
 

@@ -21,5 +21,5 @@ HEADER DESK_ACC "deskacc" "DeskAcc Demo" "V1.0" {
     dostype USR
     author "Asbjoern Djupdal"
     info "Sample desk accessory"
-    mode any
+    mode 40only
 }

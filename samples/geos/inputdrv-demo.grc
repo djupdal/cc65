@@ -1,6 +1,6 @@
 HEADER INPUT_DEVICE "inputdrv" "Demo Joystk" "V1.0" {
     dostype USR
     author "cc65 team"
-    info "Minimal GEOS input driver example (joystick, port 2)."
+    info "Minimal GEOS input driver skeleton."
     mode any
 }

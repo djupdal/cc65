@@ -86,6 +86,7 @@ EXELIST_geos-cbm = \
 	hello1.cvt \
 	hello2.cvt \
 	inputdrv-demo.cvt \
+	inputdrv128-demo.cvt \
 	overlay-demo.cvt \
 	printdrv-asm-demo.cvt \
 	printdrv-demo.cvt \
@@ -232,6 +233,16 @@ inputdrv-demo.cvt: inputdrv-demo.grc inputdrv-demo.s
 	$(if $(QUIET),echo $(SYS):$@)
 	$(CL) -t $(SYS) -O -o $@ -m inputdrv-demo.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-inputdrv.cfg) inputdrv-demo.grc inputdrv-demo.s
 
+# INPUT_128 is the C128-specific counterpart to INPUT_DEVICE above: a
+# separate jump table (InitMouse_128/SlowMouse_128/UpdateMouse_128) at a
+# different load address ($FD00, not $FE80) -- C64 and C128 input drivers
+# are not compatible, hence the separate filetype (see
+# libsrc/geos-cbm/inputdrv.inc and geos-cbm-inputdrv128.cfg). geos-cbm
+# only: there is no Apple GEOS equivalent.
+inputdrv128-demo.cvt: inputdrv128-demo.grc inputdrv128-demo.s
+	$(if $(QUIET),echo $(SYS):$@)
+	$(CL) -t $(SYS) -O -o $@ -m inputdrv128-demo.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-inputdrv128.cfg) inputdrv128-demo.grc inputdrv128-demo.s
+
 # Same PRINTER driver as printdrv-demo.cvt above, but written directly in
 # assembly instead of C -- see printdrv-asm-demo.s for why that's viable
 # here (unlike inputdrv-demo.s's UpdateMouse) but was never required:
@@ -257,6 +268,7 @@ yesno.cvt: yesnores.grc yesno.c
 
 clean:
 	@$(DEL) overlay-demores.h 2>$(NULLDEV)
+	@$(DEL) deskacc-demores.h 2>$(NULLDEV)
 	@$(DEL) bitmap.c 2>$(NULLDEV)
 	@$(DEL) deskacc-crt0.o 2>$(NULLDEV)
 	@$(DEL) printdrv-crt0.o 2>$(NULLDEV)
