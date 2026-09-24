@@ -1,7 +1,7 @@
 ;
 ; Minimal GEOS input driver skeleton.
 ;
-; 2026, cc65 team
+; 2026, Asbjørn Djupdal (asbjoern@djupdal.org)
 ;
 
             .export InitMouse, SlowMouse, UpdateMouse

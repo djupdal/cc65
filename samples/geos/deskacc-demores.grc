@@ -19,7 +19,6 @@ MENU mainMenu 80,64 HORIZONTAL
 
 HEADER DESK_ACC "deskacc" "DeskAcc Demo" "V1.0" {
     dostype USR
-    author "Asbjoern Djupdal"
     info "Sample desk accessory"
     mode 40only
 }

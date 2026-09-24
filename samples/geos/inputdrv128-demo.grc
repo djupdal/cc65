@@ -1,6 +1,5 @@
 HEADER INPUT_128 "inputdrv128" "Demo Inpt128" "V1.0" {
     dostype USR
-    author "cc65 team"
     info "Minimal GEOS C128 input driver skeleton."
     mode any
 }

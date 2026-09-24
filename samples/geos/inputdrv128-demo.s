@@ -1,7 +1,7 @@
 ;
 ; Minimal GEOS C128 input driver skeleton.
 ;
-; 2026, cc65 team
+; 2026, Asbjørn Djupdal (asbjoern@djupdal.org)
 ;
 
             .export InitMouse_128, SlowMouse_128, UpdateMouse_128, SetMouse_128

@@ -1,6 +1,5 @@
 HEADER PRINTER "printdrv" "Demo Printer" "V1.0" {
     dostype USR
-    author "Asbjoern Djupdal"
     info "Minimal GEOS printer driver example."
     mode any
 }

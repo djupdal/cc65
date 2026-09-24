@@ -1,7 +1,7 @@
 ;
 ; Minimal GEOS printer driver example
 ;
-; 2026, cc65 team
+; 2026, Asbjørn Djupdal (asbjoern@djupdal.org)
 ;
 
             .export InitForPrint, StartPrint, PrintBuffer, StopPrint
