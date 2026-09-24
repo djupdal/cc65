@@ -463,6 +463,7 @@ static void DoHeader (void)
     char i1[9], i2[9], i3[9];
     int i;
     int isDeskAcc = 0;
+    int isPrinter = 0;
 
     openSFile ();
 
@@ -479,6 +480,10 @@ static void DoHeader (void)
                 myHead.geostype = 0x81;
                 isDeskAcc = 1;
                 break;
+            case 5: /* PRINTER */
+                myHead.geostype = 0x85;
+                isPrinter = 1;
+                break;
             default:
                 AbEnd ("Filetype '%s' is not supported yet", token);
         }
@@ -493,6 +498,10 @@ static void DoHeader (void)
             case 2: /* DESK_ACC */
                 myHead.geostype = 5;
                 isDeskAcc = 1;
+                break;
+            case 5: /* PRINTER */
+                myHead.geostype = 9;
+                isPrinter = 1;
                 break;
             default:
                 AbEnd ("Filetype '%s' is not supported yet", token);
@@ -611,8 +620,7 @@ static void DoHeader (void)
         ** range GEOS has to save and restore around it (LdDeskAcc's swap
         ** file), which includes headroom for its stack and heap, not just
         ** its static code/data/bss. __HIMEM__ (top of usable memory, below
-        ** the screen/back buffer) is the symbol meant for this, see
-        ** https://github.com/cc65/cc65/issues/823
+        ** the screen/back buffer) is the symbol meant for this
         */
         fprintf (outputSFile,
             "    .import __HIMEM__\n");
@@ -745,19 +753,12 @@ static void DoHeader (void)
         }
     }
 
-    /* The load/end address pair is only meaningful for DESK_ACC: the GEOS
-    ** kernel uses it to know how much underlying memory to save and restore
-    ** around the accessory (see LdDeskAcc/SaveSwapFile). That range has to
-    ** cover the accessory's stack/heap headroom too, not just its static
-    ** code/data/bss, so it must reach up to __HIMEM__ (see
-    ** https://github.com/cc65/cc65/issues/823). Applications ignore this
-    ** field, so they keep the historic zero-length placeholder.
-    */
     fprintf (outputSFile,
         "    .byte %i, %i, %i\n"
-        "    .word __VLIR0_START__, %s - 1, __STARTUP_RUN__\n\n",
+        "    .word __VLIR0_START__, %s - 1, %s\n\n",
         myHead.dostype, myHead.geostype, myHead.structure,
-        isDeskAcc ? "__HIMEM__" : "__VLIR0_START__");
+        isDeskAcc ? "__HIMEM__" : "__VLIR0_START__",
+        isPrinter ? "0" : "__STARTUP_RUN__");
 
     fillOut (myHead.classname, 12, "$20");
 

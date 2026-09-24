@@ -86,6 +86,7 @@ EXELIST_geos-cbm = \
 	hello1.cvt \
 	hello2.cvt \
 	overlay-demo.cvt \
+	printdrv-demo.cvt \
 	vector-demo.cvt \
 	yesno.cvt
 
@@ -196,6 +197,28 @@ overlay-demo.cvt: overlay-demores.grc overlay-demo.c
 	$(if $(QUIET),echo $(SYS):$@)
 	$(CL) -t $(SYS) -O -o $@ -m overlay-demo.map overlay-demores.grc overlay-demo.c
 
+# A PRINTER driver, like a DESK_ACC, needs its own linker config: its load
+# address (STARTADDRESS) is fixed at $7900 (GEOS Programmer's Reference
+# Guide, ch. 18 -- PRINTBASE), not the normal APPLICATION address, and
+# its memory ceiling is much tighter (under 1.5K total) since the whole
+# point is that it coexists in memory with whatever application loaded
+# it. Only geos-cbm-printdrv.cfg exists so far; Apple GEOS printer
+# drivers use an entirely different jump table (different base address,
+# different routines), not implemented here at all yet.
+#
+# printdrv-crt0.o (see printdrv-crt0.s) is linked explicitly, ahead of
+# the target library, the same way deskacc-crt0.o is above: it satisfies
+# __STARTUP__ itself, so the linker never pulls in the library's own
+# crt0.o -- this driver has no main() or program exit at all, just the
+# jump table printdrv-crt0.s provides.
+printdrv-crt0.o: printdrv-crt0.s
+	$(if $(QUIET),echo $(SYS):$@)
+	$(AS) -t $(SYS) -I ../../libsrc/$(SYS) -I ../../libsrc/geos-common -o $@ printdrv-crt0.s
+
+printdrv-demo.cvt: printdrv-crt0.o printdrv-demo.grc printdrv-demo.c
+	$(if $(QUIET),echo $(SYS):$@)
+	$(CL) -t $(SYS) -O -o $@ -m printdrv-demo.map $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-printdrv.cfg) printdrv-crt0.o printdrv-demo.grc printdrv-demo.c
+
 rmvprot.cvt: rmvprotres.grc rmvprot.c
 	$(if $(QUIET),echo $(SYS):$@)
 	$(CL) -t $(SYS) -O -o $@ -m rmvprot.map rmvprotres.grc rmvprot.c
@@ -213,6 +236,7 @@ clean:
 	@$(DEL) overlay-demores.h 2>$(NULLDEV)
 	@$(DEL) bitmap.c 2>$(NULLDEV)
 	@$(DEL) deskacc-crt0.o 2>$(NULLDEV)
+	@$(DEL) printdrv-crt0.o 2>$(NULLDEV)
 	@$(DEL) *.cvt 2>$(NULLDEV)
 	@$(DEL) *.map 2>$(NULLDEV)
 	@$(DEL) samples-geos.d64 2>$(NULLDEV)

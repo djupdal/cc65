@@ -2,7 +2,7 @@
 ** Desk accessory example, replicating the behaviour of the sample desk
 ** accessory shipped with GeoProgrammer
 **
-** 2026-09-24, Asbjørn Djupdal (asbjoern@djupdal.org)
+** 2026, Asbjørn Djupdal (asbjoern@djupdal.org)
 */
 
 #include <stdbool.h>
