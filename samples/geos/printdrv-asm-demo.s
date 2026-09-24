@@ -8,11 +8,7 @@
             .export GetDimensions, PrintASCII, StartASCII, SetNLQ
 
 ; ------------------------------------------------------------------------
-; The jump table itself must be exactly these 8 3-byte jmp instructions,
-; with nothing else before or between them: an application calls this
-; driver's routines by jsr-ing to PRINTBASE (this driver's own load
-; address) plus a fixed offset -- 0, 3, 6, 9, 12, 15, 18, 21 -- matching
-; libsrc/geos-cbm/printdrv.inc.
+; The jump table itself must be exactly these 8 3-byte jmp instructions
 
 .segment "STARTUP"
 

@@ -19,14 +19,9 @@
 _RstrAppl:
         jsr donelib
 
-; Restore zero page saved at startup before handing control back -- GEOS's
-; own memory swap doesn't cover it, since it knows nothing about zero
-; page, which is shared with whatever application is running underneath.
-; __GEOS_SAVED_ZP__ is provided by whatever startup code the final
-; program links against; see samples/geos/deskacc-crt0.s, which a desk
-; accessory links in place of the standard crt0.s specifically to save
-; it, without costing every other GEOS program a buffer it never reads
-; back.
+; Restore zero page saved at startup before handing control back
+; __GEOS_SAVED_ZP__ must be filled by the startup code the final
+; program links against
 
         ldy #<(__ZP_SIZE__ - 1)
 RstrZP: lda __GEOS_SAVED_ZP__,y

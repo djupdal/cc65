@@ -7,7 +7,7 @@
             .export InitMouse_128, SlowMouse_128, UpdateMouse_128, SetMouse_128
 
 ; ------------------------------------------------------------------------
-; The jump table itself must be exactly these 4 3-byte jmp instructions,
+; The jump table itself must be exactly these 4 3-byte jmp instructions
 
 .segment "STARTUP"
 

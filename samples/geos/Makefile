@@ -137,33 +137,6 @@ bitmap-demo.cvt: bitmap.c bitmap-demores.grc bitmap-demo.c
 	$(if $(QUIET),echo $(SYS):$@)
 	$(CL) -t $(SYS) -O -o $@ -m bitmap-demo.map bitmap-demores.grc bitmap-demo.c
 
-# A DESK_ACC needs a different linker config to a plain APPLICATION:
-#
-# - its load address (STARTADDRESS) has to move: the default $0400 is
-#   the normal APPLICATION load address, which overlaps memory the
-#   resident disk driver lives in. Reusing $0400 works fine for
-#   loading/running the accessory itself, but corrupts the driver's own
-#   code, which only bites once RstrAppl needs the driver again to read
-#   the swap file back. A known-working hand-written geos-cbm DA loads
-#   at $1000 instead. Not yet verified what the equivalent is for
-#   geos-apple.
-#
-# - __HIMEM__ (grc65's DESK_ACC header end address, i.e. how much memory
-#   GEOS saves to a swap file before loading the accessory over it and
-#   restores afterwards) needs to be trimmed to this accessory's own
-#   footprint plus stack headroom, instead of the whole application
-#   memory space cfg/geos-cbm.cfg's regular __HIMEM__ default uses --
-#   see geos-cbm-deskacc.cfg for how that's derived automatically from
-#   wherever the linker actually ends up placing this accessory's code,
-#   data and bss (__VLIR0_LAST__), in the same link pass, instead of
-#   needing a number picked by hand. Only geos-cbm-deskacc.cfg exists so
-#   far (see above); geos-apple still uses the regular geos-apple.cfg.
-#
-# deskacc-crt0.o (see deskacc-crt0.s) is linked explicitly, ahead of the
-# target library: it satisfies __STARTUP__/_exit itself, so the linker
-# never pulls in the library's own crt0.o. This keeps the zero page save
-# a desk accessory needs (see deskacc-crt0.s) out of every other GEOS
-# program's build, instead of changing the shared crt0.s/cfg files.
 deskacc-crt0.o: deskacc-crt0.s
 	$(if $(QUIET),echo $(SYS):$@)
 	$(AS) -t $(SYS) -I ../../libsrc/$(SYS) -I ../../libsrc/geos-common -o $@ deskacc-crt0.s
@@ -200,20 +173,6 @@ overlay-demo.cvt: overlay-demores.grc overlay-demo.c
 	$(if $(QUIET),echo $(SYS):$@)
 	$(CL) -t $(SYS) -O -o $@ -m overlay-demo.map overlay-demores.grc overlay-demo.c
 
-# A PRINTER driver, like a DESK_ACC, needs its own linker config: its load
-# address (STARTADDRESS) is fixed at $7900 (GEOS Programmer's Reference
-# Guide, ch. 18 -- PRINTBASE), not the normal APPLICATION address, and
-# its memory ceiling is much tighter (under 1.5K total) since the whole
-# point is that it coexists in memory with whatever application loaded
-# it. Only geos-cbm-printdrv.cfg exists so far; Apple GEOS printer
-# drivers use an entirely different jump table (different base address,
-# different routines), not implemented here at all yet.
-#
-# printdrv-crt0.o (see printdrv-crt0.s) is linked explicitly, ahead of
-# the target library, the same way deskacc-crt0.o is above: it satisfies
-# __STARTUP__ itself, so the linker never pulls in the library's own
-# crt0.o -- this driver has no main() or program exit at all, just the
-# jump table printdrv-crt0.s provides.
 printdrv-crt0.o: printdrv-crt0.s
 	$(if $(QUIET),echo $(SYS):$@)
 	$(AS) -t $(SYS) -I ../../libsrc/$(SYS) -I ../../libsrc/geos-common -o $@ printdrv-crt0.s
@@ -222,36 +181,17 @@ printdrv-demo.cvt: printdrv-crt0.o printdrv-demo.grc printdrv-demo.c
 	$(if $(QUIET),echo $(SYS):$@)
 	$(CL) -t $(SYS) -O -o $@ -m printdrv-demo.map $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-printdrv.cfg) printdrv-crt0.o printdrv-demo.grc printdrv-demo.c
 
-# An INPUT_DEVICE driver is loaded at MOUSE_BASE ($FE80) and calls its
-# 3-entry jump table at GEOS Kernal Interrupt Level, so unlike
-# deskacc-demo/printdrv-demo there is no C code and no separate crt0.o
-# here at all -- inputdrv-demo.s *is* the whole driver, jump table
-# included, assembled and linked directly. Only geos-cbm-inputdrv.cfg
-# exists so far; Apple GEOS uses a different load address ($F000) for
-# this, not implemented here at all yet.
+printdrv-asm-demo.cvt: printdrv-asm-demo.grc printdrv-asm-demo.s
+	$(if $(QUIET),echo $(SYS):$@)
+	$(CL) -t $(SYS) -O -o $@ -m printdrv-asm-demo.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-printdrv-asm.cfg) printdrv-asm-demo.grc printdrv-asm-demo.s
+
 inputdrv-demo.cvt: inputdrv-demo.grc inputdrv-demo.s
 	$(if $(QUIET),echo $(SYS):$@)
 	$(CL) -t $(SYS) -O -o $@ -m inputdrv-demo.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-inputdrv.cfg) inputdrv-demo.grc inputdrv-demo.s
 
-# INPUT_128 is the C128-specific counterpart to INPUT_DEVICE above: a
-# separate jump table (InitMouse_128/SlowMouse_128/UpdateMouse_128) at a
-# different load address ($FD00, not $FE80) -- C64 and C128 input drivers
-# are not compatible, hence the separate filetype (see
-# libsrc/geos-cbm/inputdrv.inc and geos-cbm-inputdrv128.cfg). geos-cbm
-# only: there is no Apple GEOS equivalent.
 inputdrv128-demo.cvt: inputdrv128-demo.grc inputdrv128-demo.s
 	$(if $(QUIET),echo $(SYS):$@)
 	$(CL) -t $(SYS) -O -o $@ -m inputdrv128-demo.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-inputdrv128.cfg) inputdrv128-demo.grc inputdrv128-demo.s
-
-# Same PRINTER driver as printdrv-demo.cvt above, but written directly in
-# assembly instead of C -- see printdrv-asm-demo.s for why that's viable
-# here (unlike inputdrv-demo.s's UpdateMouse) but was never required:
-# no crt0.o, no EnterDriver/LeaveDriver zero-page dance, just the driver
-# itself, assembled and linked directly against its own, leaner cfg
-# (geos-cbm-printdrv-asm.cfg has no C-runtime stack to make room for).
-printdrv-asm-demo.cvt: printdrv-asm-demo.grc printdrv-asm-demo.s
-	$(if $(QUIET),echo $(SYS):$@)
-	$(CL) -t $(SYS) -O -o $@ -m printdrv-asm-demo.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-printdrv-asm.cfg) printdrv-asm-demo.grc printdrv-asm-demo.s
 
 rmvprot.cvt: rmvprotres.grc rmvprot.c
 	$(if $(QUIET),echo $(SYS):$@)

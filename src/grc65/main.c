@@ -632,10 +632,7 @@ static void DoHeader (void)
 
     if (isDeskAcc) {
         /* The end address for a desk accessory must cover the whole memory
-        ** range GEOS has to save and restore around it (LdDeskAcc's swap
-        ** file), which includes headroom for its stack and heap, not just
-        ** its static code/data/bss. __HIMEM__ (top of usable memory, below
-        ** the screen/back buffer) is the symbol meant for this
+        ** range GEOS has to save and restore.  __HIMEM__ is used for this
         */
         fprintf (outputSFile,
             "    .import __HIMEM__\n");
@@ -647,13 +644,6 @@ static void DoHeader (void)
         "    .import __VLIR0_BLOCKS__\n"
     );
 
-    /* __VLIR1_BLOCKS__..__VLIR19_BLOCKS__ are only ever added into the
-    ** CBM DIRENTRY's "length in blocks" field below, and only if this
-    ** header actually declares a VLIR structure -- a SEQ structured
-    ** file (every desk accessory, and any non-overlaid application)
-    ** doesn't need them, so don't require a linker config to provide
-    ** them either.
-    */
     if (myHead.structure == APPHEADER_STRUCTURE_VLIR) {
         fprintf (outputSFile,
             "    .import __VLIR1_BLOCKS__\n"

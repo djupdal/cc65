@@ -7,7 +7,7 @@
             .export InitMouse, SlowMouse, UpdateMouse
 
 ; ------------------------------------------------------------------------
-; The jump table itself must be exactly these 3 3-byte jmp instructions,
+; The jump table itself must be exactly these 3 3-byte jmp instructions
 
 .segment "STARTUP"
 

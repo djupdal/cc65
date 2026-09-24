@@ -24,8 +24,9 @@ Optional resources might be menu definitions, other headers (e.g., for data
 files of an app.), dialog definitions, etc.  Without an application's header,
 GEOS is unable to load and start it.
 
-Currently, <bf/grc65/ supports only menus and the required header definition,
-along with support for building applications with VLIR-structured overlays.
+Currently, <bf/grc65/ supports menus, the required header definition,
+driver/accessory headers (desk accessories, printer drivers, input drivers),
+and building applications with VLIR-structured overlays.
 
 <bf/grc65/ generates output in two formats: C header and <bf/ca65/ source (.s).
 That is because the application header data must be in assembly format, while
@@ -115,7 +116,11 @@ HEADER <GEOS_TYPE> "dosname" "classname" "version" {
 }</verb></tscreen>
 The header definition describes the GEOS header sector which is unique to
 each file.  The definition starts with the keyword <tt/HEADER/, then goes the
-GEOS file-type.  You can use only <tt/APPLICATION/ here at the moment.  Then,
+GEOS file-type.  It can be <tt/APPLICATION/, <tt/AUTO_EXEC/, <tt/DESK_ACC/,
+<tt/PRINTER/, <tt/INPUT_DEVICE/, or <tt/INPUT_128/ (128-only).
+<tt/PRINTER/, <tt/INPUT_DEVICE/, and <tt/INPUT_128/ are drivers: GEOS only
+loads them, never executes them directly, so they need no <tt/main()/ -- see
+<ref name="Building drivers and accessories" id="building-driver">.  Then,
 there are (each one in quotes) the DOS file-name (up to 16 characters), the GEOS
 Class name (up to 12 characters), and the version info (up to 4 characters).
 The version should be written as &dquot;<tt/V/x.y&dquot;, where <em/x/ is the
@@ -263,6 +268,30 @@ that was given in the header definition.
 
 At each step, a <tt/-t geos-cbm/ was present on the command-line.  That switch is
 required for the correct process of GEOS sequential application building.
+
+
+
+<sect>Building drivers and accessories<label id="building-driver">
+<p><tt/DESK_ACC/, <tt/PRINTER/, <tt/INPUT_DEVICE/, and <tt/INPUT_128/ headers
+each need their own linker config (<tt/-C/) instead of the default one:
+
+<itemize>
+<item><tt/DESK_ACC/: link <tt/deskacc-crt0.o/ ahead of the library,
+<tt/-C geos-cbm-deskacc.cfg/.
+<item><tt/PRINTER/ (C): link <tt/printdrv-crt0.o/ ahead of the library,
+<tt/-C geos-cbm-printdrv.cfg/.
+<item><tt/PRINTER/ (assembly-only): no crt0, <tt/-C geos-cbm-printdrv-asm.cfg/,
+plus <tt/--asm-include-dir/ for <tt>libsrc/geos-cbm</tt> and
+<tt>libsrc/geos-common</tt>.
+<item><tt/INPUT_DEVICE/ / <tt/INPUT_128/: assembly-only,
+<tt/-C geos-cbm-inputdrv.cfg/ or <tt/geos-cbm-inputdrv128.cfg/, same
+<tt/--asm-include-dir/ requirement.
+</itemize>
+
+<tt/INPUT_DEVICE//<tt/INPUT_128/ drivers are always assembly-only: their
+main routine (<tt/UpdateMouse/) runs at GEOS Kernal Interrupt Level, where
+cc65's C runtime isn't safe to use.  See <tt>samples/geos</tt> for a working
+example of each type.
 
 
 
