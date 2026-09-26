@@ -27,12 +27,9 @@
 ; Somewhere to save cc65's own runtime zero page block while this
 ; accessory is running.
 
-GEOS_SAVED_ZP_SIZE = $20       ; generous upper bound, checked below
-
-.segment        "DATA"
+.segment        "SAVEDZP"
 
 __GEOS_SAVED_ZP__:
-        .res    GEOS_SAVED_ZP_SIZE
 
 ; ------------------------------------------------------------------------
 ; Place the startup code in a special segment.
@@ -41,7 +38,6 @@ __GEOS_SAVED_ZP__:
 
 ; Save zero page before anything below gets a chance to use it.
 
-        .assert __ZP_SIZE__ <= GEOS_SAVED_ZP_SIZE, lderror, "GEOS ZP area grew past the saved-ZP buffer, update deskacc-crt0.s"
         ldy #<(__ZP_SIZE__ - 1)
 SaveZP: lda __ZP_START__,y
         sta __GEOS_SAVED_ZP__,y

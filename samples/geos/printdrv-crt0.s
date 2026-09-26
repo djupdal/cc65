@@ -15,8 +15,6 @@
 
             .include "geossym.inc"
 
-GEOS_SAVED_ZP_SIZE = $20       ; generous upper bound, checked below
-
 .segment "STARTUP"
 
 InitForPrint:   jmp DoInitForPrint
@@ -35,7 +33,6 @@ SetNLQ:         jmp DoSetNLQ
 .segment "CODE"
 
 EnterDriver:
-        .assert __ZP_SIZE__ <= GEOS_SAVED_ZP_SIZE, lderror, "GEOS ZP area grew past the saved-ZP buffer, update printdrv-crt0.s"
         ldy #<(__ZP_SIZE__ - 1)
 @SaveZP:
         lda __ZP_START__,y
@@ -127,6 +124,6 @@ DoSetNLQ:
         jsr LeaveDriver
         rts
 
-.segment "BSS"
+.segment "SAVEDZP"
 
-savedZP:        .res GEOS_SAVED_ZP_SIZE
+savedZP:
