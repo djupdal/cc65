@@ -278,20 +278,19 @@ each need their own linker config (<tt/-C/) instead of the default one:
 <itemize>
 <item><tt/DESK_ACC/: link <tt/deskacc-crt0.o/ ahead of the library,
 <tt/-C geos-cbm-deskacc.cfg/.
-<item><tt/PRINTER/ (C): link <tt/printdrv-crt0.o/ ahead of the library,
-<tt/-C geos-cbm-printdrv.cfg/.
-<item><tt/PRINTER/ (assembly-only): no crt0, <tt/-C geos-cbm-printdrv-asm.cfg/,
+<item><tt/PRINTER/: assembly-only, no crt0, <tt/-C geos-cbm-printdrv-asm.cfg/,
 plus <tt/--asm-include-dir/ for <tt>libsrc/geos-cbm</tt> and
 <tt>libsrc/geos-common</tt>.
 <item><tt/INPUT_DEVICE/ / <tt/INPUT_128/: assembly-only,
-<tt/-C geos-cbm-inputdrv.cfg/ or <tt/geos-cbm-inputdrv128.cfg/, same
+<tt/-C geos-cbm-inputdrv-asm.cfg/ or <tt/geos-cbm-inputdrv128.cfg/, same
 <tt/--asm-include-dir/ requirement.
 </itemize>
 
 <tt/INPUT_DEVICE//<tt/INPUT_128/ drivers are always assembly-only: their
 main routine (<tt/UpdateMouse/) runs at GEOS Kernal Interrupt Level, where
-cc65's C runtime isn't safe to use.  See <tt>samples/geos</tt> for a working
-example of each type.
+cc65's C runtime isn't safe to use.  <tt/PRINTER/ drivers are small enough
+that writing one in C isn't worth the overhead either.  See
+<tt>samples/geos</tt> for a working example of each type.
 
 
 

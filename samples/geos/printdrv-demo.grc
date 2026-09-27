@@ -1,5 +1,0 @@
-HEADER PRINTER "printdrv" "Demo Printer" "V1.0" {
-    dostype USR
-    info "Minimal GEOS printer driver example."
-    mode any
-}

@@ -85,11 +85,10 @@ EXELIST_geos-cbm = \
 	getid.cvt \
 	hello1.cvt \
 	hello2.cvt \
-	inputdrv-demo.cvt \
+	inputdrv-asm-demo.cvt \
 	inputdrv128-demo.cvt \
 	overlay-demo.cvt \
 	printdrv-asm-demo.cvt \
-	printdrv-demo.cvt \
 	vector-demo.cvt \
 	yesno.cvt
 
@@ -173,21 +172,13 @@ overlay-demo.cvt: overlay-demores.grc overlay-demo.c
 	$(if $(QUIET),echo $(SYS):$@)
 	$(CL) -t $(SYS) -O -o $@ -m overlay-demo.map overlay-demores.grc overlay-demo.c
 
-printdrv-crt0.o: printdrv-crt0.s
-	$(if $(QUIET),echo $(SYS):$@)
-	$(AS) -t $(SYS) -I ../../libsrc/$(SYS) -I ../../libsrc/geos-common -o $@ printdrv-crt0.s
-
-printdrv-demo.cvt: printdrv-crt0.o printdrv-demo.grc printdrv-demo.c
-	$(if $(QUIET),echo $(SYS):$@)
-	$(CL) -t $(SYS) -O -o $@ -m printdrv-demo.map $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-printdrv.cfg) printdrv-crt0.o printdrv-demo.grc printdrv-demo.c
-
 printdrv-asm-demo.cvt: printdrv-asm-demo.grc printdrv-asm-demo.s
 	$(if $(QUIET),echo $(SYS):$@)
 	$(CL) -t $(SYS) -O -o $@ -m printdrv-asm-demo.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-printdrv-asm.cfg) printdrv-asm-demo.grc printdrv-asm-demo.s
 
-inputdrv-demo.cvt: inputdrv-demo.grc inputdrv-demo.s
+inputdrv-asm-demo.cvt: inputdrv-asm-demo.grc inputdrv-asm-demo.s
 	$(if $(QUIET),echo $(SYS):$@)
-	$(CL) -t $(SYS) -O -o $@ -m inputdrv-demo.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-inputdrv.cfg) inputdrv-demo.grc inputdrv-demo.s
+	$(CL) -t $(SYS) -O -o $@ -m inputdrv-asm-demo.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-inputdrv-asm.cfg) inputdrv-asm-demo.grc inputdrv-asm-demo.s
 
 inputdrv128-demo.cvt: inputdrv128-demo.grc inputdrv128-demo.s
 	$(if $(QUIET),echo $(SYS):$@)
@@ -211,7 +202,6 @@ clean:
 	@$(DEL) deskacc-demores.h 2>$(NULLDEV)
 	@$(DEL) bitmap.c 2>$(NULLDEV)
 	@$(DEL) deskacc-crt0.o 2>$(NULLDEV)
-	@$(DEL) printdrv-crt0.o 2>$(NULLDEV)
 	@$(DEL) *.cvt 2>$(NULLDEV)
 	@$(DEL) *.map 2>$(NULLDEV)
 	@$(DEL) samples-geos.d64 2>$(NULLDEV)
