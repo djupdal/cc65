@@ -1,4 +1,4 @@
-HEADER INPUT_DEVICE "inputdrvasm" "Demo input driver" "V1.0" {
+HEADER INPUT_DEVICE "inputdrv" "InputDrv" "V1.0" {
     dostype USR
     info "Minimal GEOS input driver skeleton."
     mode any

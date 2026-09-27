@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <geos.h>
 
-#include "deskacc-demores.h"
+#include "deskaccres.h"
 
 /*****************************************************************************/
 /* defines */

@@ -278,11 +278,11 @@ each need their own linker config (<tt/-C/) instead of the default one:
 <itemize>
 <item><tt/DESK_ACC/: link <tt/deskacc-crt0.o/ ahead of the library,
 <tt/-C geos-cbm-deskacc.cfg/.
-<item><tt/PRINTER/: assembly-only, no crt0, <tt/-C geos-cbm-printdrv-asm.cfg/,
+<item><tt/PRINTER/: assembly-only, no crt0, <tt/-C geos-cbm-printdrv.cfg/,
 plus <tt/--asm-include-dir/ for <tt>libsrc/geos-cbm</tt> and
 <tt>libsrc/geos-common</tt>.
 <item><tt/INPUT_DEVICE/ / <tt/INPUT_128/: assembly-only,
-<tt/-C geos-cbm-inputdrv-asm.cfg/ or <tt/geos-cbm-inputdrv128.cfg/, same
+<tt/-C geos-cbm-inputdrv.cfg/ or <tt/geos-cbm-inputdrv128.cfg/, same
 <tt/--asm-include-dir/ requirement.
 </itemize>
 

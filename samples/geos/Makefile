@@ -79,16 +79,16 @@ endef # SUBDIR_recipe
 
 EXELIST_geos-cbm = \
 	bitmap-demo.cvt \
-	deskacc-demo.cvt \
+	deskacc.cvt \
 	filesel.cvt \
 	geosver.cvt \
 	getid.cvt \
 	hello1.cvt \
 	hello2.cvt \
-	inputdrv-asm-demo.cvt \
-	inputdrv128-demo.cvt \
+	inputdrv.cvt \
+	inputdrv128.cvt \
 	overlay-demo.cvt \
-	printdrv-asm-demo.cvt \
+	printdrv.cvt \
 	vector-demo.cvt \
 	yesno.cvt
 
@@ -140,9 +140,9 @@ deskacc-crt0.o: deskacc-crt0.s
 	$(if $(QUIET),echo $(SYS):$@)
 	$(AS) -t $(SYS) -I ../../libsrc/$(SYS) -I ../../libsrc/geos-common -o $@ deskacc-crt0.s
 
-deskacc-demo.cvt: deskacc-crt0.o deskacc-demores.grc deskacc-demo.c
+deskacc.cvt: deskacc-crt0.o deskaccres.grc deskacc.c
 	$(if $(QUIET),echo $(SYS):$@)
-	$(CL) -t $(SYS) -O -o $@ -m deskacc-demo.map $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-deskacc.cfg) deskacc-crt0.o deskacc-demores.grc deskacc-demo.c
+	$(CL) -t $(SYS) -O -o $@ -m deskacc.map $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-deskacc.cfg) deskacc-crt0.o deskaccres.grc deskacc.c
 
 filesel.cvt: fileselres.grc filesel.c
 	$(if $(QUIET),echo $(SYS):$@)
@@ -172,17 +172,17 @@ overlay-demo.cvt: overlay-demores.grc overlay-demo.c
 	$(if $(QUIET),echo $(SYS):$@)
 	$(CL) -t $(SYS) -O -o $@ -m overlay-demo.map overlay-demores.grc overlay-demo.c
 
-printdrv-asm-demo.cvt: printdrv-asm-demo.grc printdrv-asm-demo.s
+printdrv.cvt: printdrv.grc printdrv.s
 	$(if $(QUIET),echo $(SYS):$@)
-	$(CL) -t $(SYS) -O -o $@ -m printdrv-asm-demo.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-printdrv-asm.cfg) printdrv-asm-demo.grc printdrv-asm-demo.s
+	$(CL) -t $(SYS) -O -o $@ -m printdrv.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-printdrv.cfg) printdrv.grc printdrv.s
 
-inputdrv-asm-demo.cvt: inputdrv-asm-demo.grc inputdrv-asm-demo.s
+inputdrv.cvt: inputdrv.grc inputdrv.s
 	$(if $(QUIET),echo $(SYS):$@)
-	$(CL) -t $(SYS) -O -o $@ -m inputdrv-asm-demo.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-inputdrv-asm.cfg) inputdrv-asm-demo.grc inputdrv-asm-demo.s
+	$(CL) -t $(SYS) -O -o $@ -m inputdrv.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-inputdrv.cfg) inputdrv.grc inputdrv.s
 
-inputdrv128-demo.cvt: inputdrv128-demo.grc inputdrv128-demo.s
+inputdrv128.cvt: inputdrv128.grc inputdrv128.s
 	$(if $(QUIET),echo $(SYS):$@)
-	$(CL) -t $(SYS) -O -o $@ -m inputdrv128-demo.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-inputdrv128.cfg) inputdrv128-demo.grc inputdrv128-demo.s
+	$(CL) -t $(SYS) -O -o $@ -m inputdrv128.map --asm-include-dir ../../libsrc/$(SYS) --asm-include-dir ../../libsrc/geos-common $(if $(filter geos-cbm,$(SYS)),-C geos-cbm-inputdrv128.cfg) inputdrv128.grc inputdrv128.s
 
 rmvprot.cvt: rmvprotres.grc rmvprot.c
 	$(if $(QUIET),echo $(SYS):$@)
@@ -199,7 +199,7 @@ yesno.cvt: yesnores.grc yesno.c
 
 clean:
 	@$(DEL) overlay-demores.h 2>$(NULLDEV)
-	@$(DEL) deskacc-demores.h 2>$(NULLDEV)
+	@$(DEL) deskaccres.h 2>$(NULLDEV)
 	@$(DEL) bitmap.c 2>$(NULLDEV)
 	@$(DEL) deskacc-crt0.o 2>$(NULLDEV)
 	@$(DEL) *.cvt 2>$(NULLDEV)

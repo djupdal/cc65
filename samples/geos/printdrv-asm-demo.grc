@@ -1,5 +1,0 @@
-HEADER PRINTER "printdrvasm" "Demo Ptr Asm" "V1.0" {
-    dostype USR
-    info "Minimal GEOS printer driver example, written directly in assembly."
-    mode any
-}
