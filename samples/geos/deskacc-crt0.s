@@ -2,15 +2,16 @@
 ; Startup code for a GEOS desk accessory (DESK_ACC), based on
 ; libsrc/geos-common/system/crt0.s
 ;
-; The only difference is the block below saving cc65's own runtime zero
-; page (c_sp, ptr1-4, ...) into a dedicated buffer before anything else
-; gets a chance to use it. RstrAppl() (see libsrc/geos-common/system/
-; rstrappl.s) restores it before handing control back to the calling
-; application.
+; The only difference is saving cc65's own runtime zero page (c_sp,
+; ptr1-4, ...) into a dedicated buffer before anything else gets a chance
+; to use it, and restoring it again on the way out -- whether that's via
+; an explicit RstrAppl() call, or main() just returning -- instead of
+; going to EnterDeskTop like a plain application would.
 
             .export _exit
             .export __STARTUP__ : absolute = 1          ; Mark as startup
             .export __GEOS_SAVED_ZP__
+            .export _RstrAppl
             .import __STACKADDR__, __STACKSIZE__        ; Linker generated
             .import __BACKBUFSIZE__                     ; Linker generated
             .import __ZP_START__, __ZP_SIZE__           ; Linker generated
@@ -82,8 +83,21 @@ SaveZP: lda __ZP_START__,y
         cli
         jsr callmain
 
-; Call the module destructors.
+; Call the module destructors, then leave this accessory and resume the
+; calling application, restoring cc65's own runtime zero page block
+; first. Whether main() just returned or RstrAppl() was called
+; explicitly, both need to happen the same way, so _exit and _RstrAppl
+; are the same code.
 
-_exit:  jsr donelib
+_exit:
+_RstrAppl:
+        jsr donelib
 
-        jmp EnterDeskTop        ; Return control to the system
+        ldy #<(__ZP_SIZE__ - 1)
+RestoreZP:
+        lda __GEOS_SAVED_ZP__,y
+        sta __ZP_START__,y
+        dey
+        bpl RestoreZP
+
+        jmp RstrAppl
