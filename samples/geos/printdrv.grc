@@ -1,4 +1,4 @@
-HEADER PRINTER "printdrv" "PrintDrv" "V1.0" {
+HEADER PRINTER "printdrv" "PrintDrv" "V2.0" {
     dostype USR
     info "Minimal GEOS printer driver skeleton"
     mode any
