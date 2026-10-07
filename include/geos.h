@@ -31,7 +31,7 @@
 #include <geos/gmemory.h>
 #include <geos/gsys.h>
 #include <geos/gdlgbox.h>
-
+#include <geos/gprint.h>
 
 
 #define CH_ULCORNER             '+'
