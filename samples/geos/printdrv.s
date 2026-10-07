@@ -38,9 +38,12 @@ DoPrintBuffer:
         rts
 
 DoStopPrint:
+        ldx #0
+        clc
         rts
 
 DoGetDimensions:
+        lda #0
         ldx #80
         ldy #105
         rts

@@ -2,7 +2,7 @@
 ; 2026 cc65 project (added for PRINTER driver support, see grc65)
 ;
 
-; void __fastcall__ PrintBuffer (char *buffer, char *scratchBuf, char color);
+; void __fastcall__ PrintBuffer (char *printData, char *workBuf, char *colorData);
 
             .export _PrintBuffer
             .import popax
@@ -11,14 +11,13 @@
             .include "geossym.inc"
 
 _PrintBuffer:
-        pha                     ; color -- passed in A (fastcall, single byte)
-        jsr popax               ; scratchBuf
+        sta r2L                 ; colorData -- passed in A/X (fastcall, pointer)
+        stx r2H
+        jsr popax               ; workBuf
         sta r1L
         stx r1H
-        jsr popax               ; buffer
+        jsr popax               ; printData
         sta r0L
         stx r0H
-        pla
-        sta r2L
         jsr PrintBuffer
         rts

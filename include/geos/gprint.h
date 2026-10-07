@@ -11,12 +11,12 @@
 #endif
 
 void InitForPrint(void);
-char StartPrint(void);
-void __fastcall__ PrintBuffer(char *buffer, char *scratchBuf, char color);
-void __fastcall__ StopPrint(char *buffer, char *scratchBuf);
-void __fastcall__ GetDimensions(char *width, char *height);
-char StartASCII(void);
-void __fastcall__ PrintASCII(const char *str, char *scratchBuf);
-void SetNLQ(void);
+char __fastcall__ StartPrint(char *workBuf);
+void __fastcall__ PrintBuffer(char *printData, char *workBuf, char *colorData);
+char __fastcall__ StopPrint(char *tempBuf, char *workBuf);
+void __fastcall__ GetDimensions(char *width, char *height, char *mode);
+char __fastcall__ StartASCII(char *workBuf);
+void __fastcall__ PrintASCII(const char *printData, char *workBuf);
+void __fastcall__ SetNLQ(char *workBuf);
 
 #endif
