@@ -72,7 +72,7 @@ const char *mainToken[] = {"MENU", "HEADER", "ICON", "DIALOG", "MEMORY", ""};
 const char *toggle[] = {"off", "no", "0", "on", "yes", "1", ""};
 
 const char *hdrFTypes[] = {"APPLICATION", "AUTO_EXEC", "DESK_ACC", "ASSEMBLY",
-                           "DISK_DEVICE", "PRINTER", "SYSTEM", "INPUT_DEVICE",
+                           "DISK_DEVICE", "PRINTER", "SYSTEM", "INPUT",
                            "INPUT_128", ""};
 
 const char *hdrFields[] = {"author", "info", "date", "dostype", "mode", "structure", "icon", ""};
@@ -491,7 +491,7 @@ static void DoHeader (void)
                 myHead.geostype = 0x85;
                 isPrinter = 1;
                 break;
-            case 7: /* INPUT_DEVICE */
+            case 7: /* INPUT */
                 myHead.geostype = 0x86;
                 isInputDevice = 1;
                 break;
@@ -514,7 +514,7 @@ static void DoHeader (void)
                 myHead.geostype = 9;
                 isPrinter = 1;
                 break;
-            case 7: /* INPUT_DEVICE */
+            case 7: /* INPUT */
                 myHead.geostype = 10;
                 isInputDevice = 1;
                 break;
