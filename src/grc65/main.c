@@ -149,6 +149,10 @@ static void OptTarget (const char* Opt attribute ((unused)), const char* Arg)
 {
     switch (FindTarget (Arg)) {
 
+        case TGT_GEOS_CBM_DA:
+        case TGT_GEOS_CBM_PRINTER:
+        case TGT_GEOS_CBM_INPUT:
+        case TGT_GEOS_CBM_INPUT128:
         case TGT_GEOS_CBM:
             apple = 0;
             break;
