@@ -39,6 +39,7 @@ struct menuitem {
     char *name;
     char *type;
     char *target;
+    int offset;
     struct menuitem *next;
 };
 
@@ -48,7 +49,12 @@ struct menu {
     int bot, right;
     char *type;
     struct menuitem *item;
+    struct menu *next;
 };
+
+/* registry of already-defined menus, so a later MENU definition can anchor
+   its position to "parentMenu:item" */
+static struct menu *menuList = NULL;
 
 struct appheader {
     int year, month, day, hour, min;
@@ -95,6 +101,17 @@ const int BSWTab[] = {0, 0x005, 0x007, 0x00b, 0x011, 0x017, 0x01d, 0x023,
     0x14d, 0x152, 0x157, 0x15a, 0x15f, 0x164, 0x166, 0x168, 0x16d, 0x16f,
     0x177, 0x17c, 0x182, 0x187, 0x18c, 0x18f, 0x193, 0x196, 0x19b, 0x1a1,
     0x1a9, 0x1af, 0x1b4, 0x1ba, 0x1be, 0x1c0, 0x1c4, 0x1ca, 0x1d2, 0x1dd};
+
+const int BSWTab80[] = {0, 0x006, 0x009, 0x00f, 0x017, 0x01f, 0x026, 0x02e,
+    0x031, 0x036, 0x03b, 0x043, 0x04a, 0x04e, 0x054, 0x057, 0x05f, 0x066,
+    0x06b, 0x071, 0x077, 0x07e, 0x084, 0x08b, 0x092, 0x099, 0x0a0, 0x0a3,
+    0x0a7, 0x0ac, 0x0b1, 0x0b6, 0x0bd, 0x0c5, 0x0cd, 0x0d4, 0x0db, 0x0e2,
+    0x0e8, 0x0ee, 0x0f5, 0x0fd, 0x100, 0x105, 0x10d, 0x112, 0x11c, 0x124,
+    0x12c, 0x133, 0x13b, 0x142, 0x148, 0x14f, 0x156, 0x15e, 0x168, 0x170,
+    0x177, 0x17e, 0x183, 0x18c, 0x191, 0x199, 0x1a2, 0x1a7, 0x1ae, 0x1b5,
+    0x1bc, 0x1c3, 0x1ca, 0x1cf, 0x1d6, 0x1dd, 0x1e0, 0x1e3, 0x1ea, 0x1ed,
+    0x1f8, 0x1ff, 0x207, 0x20e, 0x215, 0x21a, 0x220, 0x225, 0x22c, 0x234,
+    0x23f, 0x247, 0x24e, 0x255, 0x25b, 0x25e, 0x264, 0x26c, 0x271, 0x27c};
 
 const unsigned char icon1[] = {255, 255, 255, 128,   0,   1, 128,   0,   1,
                                128,   0,   1, 128,   0,   1, 128,   0,   1,
@@ -332,13 +349,14 @@ static char *bintos (unsigned char a, char out[7])
 }
 
 
-static int getNameSize (const char *word)
+static int getNameSize (const char *word, const int *table)
 {
-    /* count length of a word using BSW 9 font table */
-    int a = 0, i = 0;
+    /* count length of a word (without surrounding quotes) using BSW 9
+       font table */
+    int a = 0, i = 1;
 
-    while (word[i] != '\0') {
-        a += (BSWTab[word[i] - 31] - BSWTab[word[i] - 32]);
+    while (word[i] != '"') {
+        a += (table[word[i] - 31] - table[word[i] - 32]);
         i++;
     }
 
@@ -346,19 +364,109 @@ static int getNameSize (const char *word)
 }
 
 
+static void stripFlag (char *type, const char *flag)
+{
+    /* FLAG is a grc65-only layout hint, not a real GEOS menu-type bit --
+       remove it (and an adjacent '|') so it never reaches the emitted
+       struct literal */
+    char *p;
+    size_t len = strlen (flag);
+    char pattern[32];
+
+    sprintf (pattern, "|%s", flag);
+    if ((p = strstr (type, pattern)) != NULL) {
+        memmove (p, p + len + 1, strlen (p + len + 1) + 1);
+        return;
+    }
+    sprintf (pattern, "%s|", flag);
+    if ((p = strstr (type, pattern)) != NULL) {
+        memmove (p, p + len + 1, strlen (p + len + 1) + 1);
+        return;
+    }
+    if ((p = strstr (type, flag)) != NULL) {
+        memmove (p, p + len, strlen (p + len) + 1);
+    }
+}
+
+
+static void cellAlign (struct menu *m)
+{
+    /* CELL_ALIGN: snap left/right/bottom to whole 8x8 pixel cells, always
+       moving right/down and never left/up -- moving left could overlap
+       whatever is to the left, and the top must stay exactly where it was
+       (e.g. flush below a parent menu), so it is left untouched */
+    m->left = (m->left + 7) & ~7;
+    m->right = (m->right & ~7) + 7;
+    m->bot = (m->bot & ~7) + 7;
+}
+
+
+static struct menu *findMenu (const char *name)
+{
+    /* look up an already-defined menu by name, for anchor resolution */
+    struct menu *m;
+
+    for (m = menuList; m != NULL; m = m->next) {
+        if (strcmp (m->name, name) == 0) {
+            return m;
+        }
+    }
+
+    return NULL;
+}
+
+
+static struct menuitem *findMenuItem (const struct menu *m, const char *name)
+{
+    /* look up an item by name (without surrounding quotes) within a menu */
+    struct menuitem *it;
+    size_t len = strlen (name);
+
+    for (it = m->item; it != NULL; it = it->next) {
+        if ((strncmp (it->name + 1, name, len) == 0) && (it->name[len + 1] == '"')) {
+            return it;
+        }
+    }
+
+    return NULL;
+}
+
+
 static void DoMenu (void)
 {
     int a, size, tmpsize, item = 0;
-    char *token;
+    char *token, *itemName;
     char namebuff[255] = "";
-    struct menu myMenu;
-    struct menuitem *curItem, *newItem;
+    const int *table;
+    struct menu myMenu, *savedMenu, *anchorMenu;
+    struct menuitem *curItem, *newItem, *anchorItem;
 
     openCFile ();
 
     myMenu.name = nextWord ();
-    myMenu.left = atoi (nextWord ());
-    myMenu.top = atoi (nextWord ());
+    myMenu.next = NULL;
+
+    token = nextWord ();
+    if ((itemName = strchr (token, ':')) != NULL) {
+        *itemName++ = '\0';
+        if ((anchorMenu = findMenu (token)) == NULL) {
+            AbEnd ("Menu '%s' anchors to unknown menu '%s'", myMenu.name, token);
+        }
+        if ((anchorItem = findMenuItem (anchorMenu, itemName)) == NULL) {
+            AbEnd ("Menu '%s' anchors to unknown item '%s' in menu '%s'", myMenu.name, itemName, token);
+        }
+        if (strstr (anchorMenu->type, "HORIZONTAL") != NULL) {
+            myMenu.left = anchorMenu->left + anchorItem->offset;
+            myMenu.top = anchorMenu->bot;
+        } else {
+            myMenu.left = anchorMenu->right + 1;
+            myMenu.top = anchorMenu->top + anchorItem->offset;
+        }
+    } else {
+        myMenu.left = atoi (token);
+        myMenu.top = atoi (nextWord ());
+    }
+
     myMenu.type = nextWord ();
 
     if (strcmp (nextWord (), "{") != 0) {
@@ -397,23 +505,42 @@ static void DoMenu (void)
     /* count menu sizes */
     size = 0;
     curItem = myMenu.item;
+    table = (strstr (myMenu.type, "EIGHTY_COL") != NULL) ? BSWTab80 : BSWTab;
     if (strstr (myMenu.type, "HORIZONTAL") != NULL) {
-        /* menu is HORIZONTAL, ysize=15, sum xsize of all items +~8?*/
+        /* menu is HORIZONTAL, ysize=15, sum xsize of all items, each
+           followed by an 8px gap */
         myMenu.bot = myMenu.top + 15;
         for (a = 0; a != item; a++) {
-            size += getNameSize (curItem->name);
+            curItem->offset = size;
+            size += getNameSize (curItem->name, table) + 8;
             curItem = curItem->next;
         }
     } else {
-        /* menu is VERTICAL, ysize=item*15, count largest xsize of all items +~8? */
+        /* menu is VERTICAL, ysize=item*15, count largest xsize of all
+           items, plus the same 8px gap */
         myMenu.bot = myMenu.top + (14 * item);
         for (a = 0; a != item; a++) {
-            tmpsize = getNameSize (curItem->name);
+            curItem->offset = a * 14;
+            tmpsize = getNameSize (curItem->name, table);
             size = (size > tmpsize) ? size : tmpsize;
             curItem = curItem->next;
         }
+        size += 8;
     }
     myMenu.right = myMenu.left + size - 1;
+
+    if (strstr (myMenu.type, "CELL_ALIGN") != NULL) {
+        cellAlign (&myMenu);
+    }
+
+    stripFlag (myMenu.type, "EIGHTY_COL");
+    stripFlag (myMenu.type, "CELL_ALIGN");
+
+    /* remember this menu so later MENU definitions can anchor to it */
+    savedMenu = xmalloc (sizeof (struct menu));
+    *savedMenu = myMenu;
+    savedMenu->next = menuList;
+    menuList = savedMenu;
 
     curItem = myMenu.item;
     for (a = 0; a != item; a++) {
@@ -422,34 +549,41 @@ static void DoMenu (void)
             fprintf (outputCFile,
                 "void %s (void);\n",
                 curItem->target);
+        } else if (strstr (curItem->type, "SUB_MENU") != NULL) {
+            /* forward-declare submenu structs so a parent and its submenus
+               may be defined in either order */
+            fprintf (outputCFile,
+                "extern struct menu %s;\n",
+                curItem->target);
         }
         curItem=curItem->next;
     }
 
     fprintf (outputCFile,
         "\n"
-        "const void %s = {\n"
-        "    (char)%i, (char)%i,\n"
-        "    (int)%i, (int)%i,\n"
-        "    (char)(%i | %s),\n",
+        "struct menu %s = {\n"
+        "    { %i, %i, %i, %i },\n"
+        "    (char)(%i | %s),\n"
+        "    {\n",
         myMenu.name, myMenu.top, myMenu.bot, myMenu.left, myMenu.right, item, myMenu.type);
 
     curItem = myMenu.item;
     for (a = 0; a != item; a++) {
         fprintf (outputCFile,
-            "    %s, (char)%s, (int)",
+            "        { %s, (char)%s, (void*)",
             curItem->name, curItem->type);
         if ((strstr (curItem->type, "SUB_MENU") != NULL) && (strstr (curItem->type, "DYN_SUB_MENU") == NULL)) {
             fprintf (outputCFile,
                 "&");
         }
         fprintf (outputCFile,
-            "%s,\n",
+            "%s },\n",
             curItem->target);
         curItem = curItem->next;
     }
 
     fprintf (outputCFile,
+        "    }\n"
         "};\n\n");
 
     if (fclose (outputCFile) != 0) {
